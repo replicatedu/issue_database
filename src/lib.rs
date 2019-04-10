@@ -6,72 +6,80 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 extern crate serde_json;
 
-
-
 //holds data for instructor and students
 pub struct ClassIssue {
-	class_repo_address: String,
+    class_repo_address: String,
     username: String,
-    password: String
+    password: String,
 }
 
 impl ClassIssue {
-    pub fn new( 
-                class_repo_address: String, 
-                username: String, 
-                password: String) -> ClassIssue {
+    pub fn new(class_repo_address: String, username: String, password: String) -> ClassIssue {
         ClassIssue {
             class_repo_address,
             username,
-            password
+            password,
         }
     }
 
-    pub fn write_issue( &self)-> Result<(), Box<std::error::Error>> {        
-        // This will POST a body of `{"lang":"rust","body":"json"}`
-        // let mut map = HashMap::new();
-        // map.insert("name", "asdasd");
-        // map.insert("private", "false");
-       
+    pub fn write_issue(&self,title:&str,body:&str) -> Result<(), Box<std::error::Error>> {
+        let mut map = HashMap::new();
+        map.insert("title", title);
+        map.insert("body", body);
+
         let mut url_str = String::new();
-        url_str.push_str(&format!("{}/issues/",self.class_repo_address));
+        url_str.push_str(&format!("{}/issues", self.class_repo_address));
 
         let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
-        
+
         let client = reqwest::Client::new();
-        let res = client.post(url)
-            .basic_auth(&self.username,Some(&self.password))
-            //.json(&map)
+        let res = client
+            .post(url)
+            .basic_auth(&self.username, Some(&self.password))
+            .json(&map)
             .send()?;
 
         dbg!(res);
         Ok(())
     }
 
-    pub fn get_issue( &self, issue_num:i32) -> Result<String, reqwest::Error>{
+    pub fn get_issue(&self, issue_num: i32) -> Result<String, reqwest::Error> {
         let mut url_str = String::new();
-        url_str.push_str(&format!("{}/issues/{}",self.class_repo_address,issue_num));
-        dbg!(&  url_str);
+        url_str.push_str(&format!("{}/issues/{}", self.class_repo_address, issue_num));
+        dbg!(&url_str);
         let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
-        
+
         let client = reqwest::Client::new();
-        let mut res = client.get(url)
-            .send()?;
+        let mut res = client.get(url).send()?;
         let body = res.text().expect("error parsing");
 
-        let deser:serde_json::Value = serde_json::from_str(&body).expect("error parsinge");
+        let deser: serde_json::Value = serde_json::from_str(&body).expect("error parsinge");
         dbg!(&deser["comments_url"]);
         Ok(body)
     }
-    pub fn close_issue( &self, issue_num:i32){
-    }
-    pub fn comment_on_issue( &self, issue_num:i32){
-    }
-    pub fn return_open_issue_numbers( &self ){
-    }
-    
-}
+    pub fn close_issue(&self, issue_num: i32) -> Result<String, reqwest::Error> {
+     
+        let mut map = HashMap::new();
+        map.insert("state", "closed");
 
+
+        let mut url_str = String::new();
+        url_str.push_str(&format!("{}/issues/{}", self.class_repo_address, issue_num));
+        dbg!(&url_str);
+        let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
+
+        let client = reqwest::Client::new();
+        let mut res = client.patch(url).basic_auth(&self.username, Some(&self.password))
+            .json(&map).send()?;
+        let body = res.text().expect("error parsing");
+
+        let deser: serde_json::Value = serde_json::from_str(&body).expect("error parsinge");
+        dbg!(&deser);
+        Ok(body)
+    }
+    pub fn comment_on_issue(&self, issue_num: i32) {}
+    pub fn return_open_issue_numbers(&self) {}
+}
 
 #[cfg(test)]
 mod tests {
@@ -81,7 +89,13 @@ mod tests {
         let username = "hortinstein";
         let password = env::var("GITHUB_PASSWORD").expect("set the GITHUB_PASSWORD env");
         let class_repo_address = "https://api.github.com/repos/replicatedu/issue_database";
-        let issue_db = ClassIssue::new(class_repo_address.to_string(),username.to_string(),password.to_string());
-        dbg!(issue_db.get_issue(1));
+        let issue_db = ClassIssue::new(
+            class_repo_address.to_string(),
+            username.to_string(),
+            password.to_string(),
+        );
+        issue_db.close_issue(1);
+        //dbg!(issue_db.get_issue(1));
+        // issue_db.write_issue("post this from rust", "this is the boody");
     }
 }
