@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/replicatedu/class_crypto.svg?branch=master)](https://travis-ci.org/replicatedu/replicatedu_lib) [![codecov](https://codecov.io/gh/replicatedu/class_crypto/branch/master/graph/badge.svg)](https://codecov.io/gh/replicatedu/class_crypto)
+[![Build Status](https://travis-ci.org/replicatedu/issue_database.svg?branch=master)](https://travis-ci.org/replicatedu/issue_database) [![codecov](https://codecov.io/gh/replicatedu/issue_database/branch/master/graph/badge.svg)](https://codecov.io/gh/replicatedu/issue_database)
 
-[![Open in Gitpod](http://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io#https://github.com/replicatedu/class_crypto/)
+[![Open in Gitpod](http://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io#https://github.com/replicatedu/issue_database/)
 
-# class_crypto
-implements all the crypto handling functions
+# issue_database
+handles issue retrieval and posting
