@@ -60,7 +60,7 @@ impl ClassIssue {
         let body = res.text().expect("error parsing");
 
         let deser:serde_json::Value = serde_json::from_str(&body).expect("error parsinge");
-        dbg!(deser);
+        dbg!(&deser["comments_url"]);
         Ok(body)
     }
     pub fn close_issue( &self, issue_num:i32){
