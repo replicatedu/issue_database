@@ -1,5 +1,5 @@
 [package]
-name = "class_crypto"
+name = "issue_database"
 version = "0.1.0"
 authors = ["alex <hortinstein@gmail.com>"]
 edition = "2018"
