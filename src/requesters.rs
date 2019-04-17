@@ -40,7 +40,9 @@ impl ClassIssueRequester {
             .post(url)
             .basic_auth(&self.username, Some(&self.password))
             .json(&json!({
+                "title": title,
                 "body": body,
+                "labels": label
             }))
             .send()?;
         let body = res.text().expect("error parsing");
@@ -69,7 +71,7 @@ impl ClassIssueRequester {
         dbg!(&body);
         Ok(body)
     }
-    pub fn get_issue(&self, issue_num: i32) -> Result<String, Box<std::error::Error>> {
+    pub fn get_issue(&self, issue_num: u32) -> Result<String, Box<std::error::Error>> {
         let mut url_str = String::new();
         url_str.push_str(&format!("{}/issues/{}", self.class_repo_address, issue_num));
         //dbg!(&url_str);
@@ -77,10 +79,12 @@ impl ClassIssueRequester {
 
         let client = reqwest::Client::new();
         let mut res = client.get(url).send()?;
+        dbg!(&res);
         let body = res.text().expect("error parsing");
         Ok(body)
     }
-    pub fn get_issue_comments(&self, issue_num: i32) -> Result<String, Box<std::error::Error>> {
+    //GET /repos/:owner/:repo/issues/:issue_number/comments
+    pub fn get_issue_comments(&self, issue_num: u32) -> Result<String, Box<std::error::Error>> {
         let mut url_str = String::new();
         url_str.push_str(&format!("{}/issues/{}/comments", self.class_repo_address, issue_num));
         //dbg!(&url_str);
@@ -91,10 +95,11 @@ impl ClassIssueRequester {
         let body = res.text().expect("error parsing");
         Ok(body)
     }
-    pub fn get_open_issues(&self) -> Result<String, Box<std::error::Error>> {
+    pub fn get_open_issues(&self,label:String) -> Result<String, Box<std::error::Error>> {
         let mut map = HashMap::new();
         map.insert("state", "open");
-
+        map.insert("labels",&label);
+        
         let mut url_str = String::new();
         url_str.push_str(&format!("{}/issues", self.class_repo_address));
         //dbg!(&url_str);
@@ -106,10 +111,10 @@ impl ClassIssueRequester {
         Ok(body)
     }
 
-    pub fn get_all_issues(&self) -> Result<String, Box<std::error::Error>> {
+    pub fn get_all_issues(&self,label:String) -> Result<String, Box<std::error::Error>> {
         let mut map = HashMap::new();
         map.insert("state", "all");
-
+        map.insert("labels",&label);
 
         let mut url_str = String::new();
         url_str.push_str(&format!("{}/issues", self.class_repo_address));
@@ -122,12 +127,13 @@ impl ClassIssueRequester {
         Ok(body)
     }
 
-    pub fn get_all_my_issues(&self) -> Result<String, Box<std::error::Error>> {
+    pub fn get_all_my_issues(&self,label:String) -> Result<String, Box<std::error::Error>> {
         let mut map = HashMap::new();
         let username = &self.username;
         let state = &"all".to_string();
         map.insert("creator", username);
         map.insert("state", state);
+        map.insert("labels",&label);
         let mut url_str = String::new();
         url_str.push_str(&format!("{}/issues", self.class_repo_address));
         //dbg!(&url_str);
@@ -157,12 +163,12 @@ impl ClassIssueRequester {
         let body = res.text().expect("error parsing");
         Ok(body)
     }
-    pub fn edit_first_comment(&self, body:&str) -> Result<String, Box<std::error::Error>> {
+    pub fn edit_comment(&self, body:&str, id:u32) -> Result<String, Box<std::error::Error>> {
         let mut map = HashMap::new();
         map.insert("body", body);
 
         let mut url_str = String::new();
-        url_str.push_str(&format!("{}/issues/comments/{}", self.class_repo_address, 1));
+        url_str.push_str(&format!("{}/issues/comments/{}", self.class_repo_address, id));
         //dbg!(&url_str);
         let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
 
@@ -194,20 +200,6 @@ mod tests {
             password.to_string(),
         );
         let body = issue_db.close_issue(1).expect("error closing");
-        let deser: serde_json::Value = serde_json::from_str(&body).expect("error parsinge");
-        dbg!(&deser);
-        assert!(deser["state"] == "closed");
-    }
-
-    #[test]
-    fn edit_first_comments() {
-        let password = env::var("GITHUB_PASSWORD").expect("set the GITHUB_PASSWORD env");
-        let issue_db = ClassIssueRequester::new(
-            CLASS_REPO_ADDRESS.to_string(),
-            USERNAME.to_string(),
-            password.to_string(),
-        );
-        let body = issue_db.edit_first_comment("EDITIED this").expect("error closing");
         let deser: serde_json::Value = serde_json::from_str(&body).expect("error parsinge");
         dbg!(&deser);
         assert!(deser["state"] == "closed");
@@ -267,7 +259,7 @@ mod tests {
             USERNAME.to_string(),
             password.to_string(),
         );
-        let body = issue_db.get_open_issues().expect("error closing");
+        let body = issue_db.get_open_issues("test".to_string()).expect("error closing");
         let deser: Vec<serde_json::Value> = serde_json::from_str(&body).expect("error parsinge");
         for x in deser {
             let title: String = serde_json::from_value(x["title"].clone()).expect("err");
@@ -275,7 +267,7 @@ mod tests {
             let issue_body: String = serde_json::from_value(x["body"].clone()).expect("err");
             dbg!(title);
             dbg!(number);
-            dbg!(issue_body);
+            //dbg!(issue_body);
             issue_db.close_issue(number);
         }
     }
@@ -288,16 +280,16 @@ mod tests {
             USERNAME.to_string(),
             password.to_string(),
         );
-        let body = issue_db.get_all_issues().expect("error closing");
+        let body = issue_db.get_all_issues("test".to_string()).expect("error closing");
         let deser: Vec<serde_json::Value> = serde_json::from_str(&body).expect("error parsinge");
         for x in deser {
-            dbg!(&x);
+            //dbg!(&x);
             let title: String = serde_json::from_value(x["title"].clone()).expect("err");
             let number: u32 = serde_json::from_value(x["number"].clone()).expect("err");
             let issue_body: String = serde_json::from_value(x["body"].clone()).expect("err");
             dbg!(title);
             dbg!(number);
-            dbg!(issue_body);
+            //dbg!(issue_body);
             issue_db.close_issue(number);
         }
     }
@@ -309,16 +301,16 @@ mod tests {
             USERNAME.to_string(),
             password.to_string(),
         );
-        let body = issue_db.get_all_my_issues().expect("error closing");
+        let body = issue_db.get_all_my_issues("test".to_string()).expect("error closing");
         let deser: Vec<serde_json::Value> = serde_json::from_str(&body).expect("error parsinge");
         for x in deser {
-            dbg!(&x);
+            //dbg!(&x);
             let title: String = serde_json::from_value(x["title"].clone()).expect("err");
             let number: u32 = serde_json::from_value(x["number"].clone()).expect("err");
             let issue_body: String = serde_json::from_value(x["body"].clone()).expect("err");
             dbg!(title);
             dbg!(number);
-            dbg!(issue_body);
+            //dbg!(issue_body);
             issue_db.close_issue(number);
         }
     }
