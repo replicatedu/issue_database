@@ -59,7 +59,7 @@ impl ClassIssueRequester {
             self.class_repo_address, issue_num
         ));
         let client = reqwest::Client::new();
-        dbg!(&url_str);
+        //dbg!(&url_str);
         let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
 
         let mut res = client
@@ -68,7 +68,7 @@ impl ClassIssueRequester {
             .json(&json!({ "body": body }))
             .send()?;
         let body = res.text().expect("error parsing");
-        dbg!(&body);
+        //dbg!(&body);
         Ok(body)
     }
     pub fn get_issue(&self, issue_num: u32) -> Result<String, Box<std::error::Error>> {
@@ -175,7 +175,7 @@ impl ClassIssueRequester {
             "{}/issues/comments/{}",
             self.class_repo_address, id
         ));
-        //dbg!(&url_str);
+        dbg!(&url_str);
         let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
 
         let client = reqwest::Client::new();
@@ -185,6 +185,7 @@ impl ClassIssueRequester {
             .json(&map)
             .send()?;
         let body = res.text().expect("error parsing");
+        dbg!(&body);
         Ok(body)
     }
 }

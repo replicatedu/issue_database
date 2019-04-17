@@ -5,11 +5,10 @@ use requesters::ClassIssueRequester;
 #[macro_use]
 extern crate serde_json;
 
+#[derive(Debug)]
 pub struct ClassIssue {
     title: String,
-    username: String,
     body: String,
-    label: String,
     number: u32,
     id: u32,
     open: bool,
@@ -23,13 +22,12 @@ pub struct ClassIssues {
 fn parse_to_vector(deser: Vec<serde_json::Value>) -> Result<Vec<ClassIssue>, ()> {
     let mut v_ret: Vec<ClassIssue> = Vec::new();
     for x in deser {
-        let issue_state: String = serde_json::from_value(x["body"].clone()).expect("err");
-        let state = if issue_state == "closed" { true } else { false };
+        let issue_state: String = serde_json::from_value(x["state"].clone()).expect("err");
+        let state = if &issue_state == "open" { true } else { false };
+        dbg!(issue_state);
         let ci = ClassIssue {
             title: serde_json::from_value(x["title"].clone()).expect("err"),
-            username: serde_json::from_value(x["username"].clone()).expect("err"),
             body: serde_json::from_value(x["body"].clone()).expect("err"),
-            label: "grade_request".to_string(),
             number: serde_json::from_value(x["number"].clone()).expect("err"),
             id: serde_json::from_value(x["id"].clone()).expect("err"),
             open: state,
@@ -59,7 +57,6 @@ impl ClassIssues {
             .add_issue(&self.requester.username, enc_repo, "register")
             .expect("error closing");
         let deser: serde_json::Value = serde_json::from_str(&body).expect("error parsinge");
-        dbg!(&deser);
         if deser["state"] == "open" {
             return Err(());
         };
@@ -72,7 +69,6 @@ impl ClassIssues {
             .add_issue(&self.requester.username, enc_repo, "grade_request")
             .expect("error closing");
         let deser: serde_json::Value = serde_json::from_str(&body).expect("error parsinge");
-        dbg!(&deser);
         if deser["state"] == "open" {
             return Err(());
         };
@@ -114,7 +110,9 @@ impl ClassIssues {
             .requester
             .get_all_issues("grade_request".to_string())
             .expect("error closing");
+        dbg!(&body);
         let deser: Vec<serde_json::Value> = serde_json::from_str(&body).expect("error parsinge");
+        dbg!(&deser);
         parse_to_vector(deser)
     }
 
@@ -134,16 +132,19 @@ impl ClassIssues {
             Err(_) => return Err(()),
             _ => (),
         };
+
         let body = self
             .requester
             .get_issue_comments(request.number)
             .expect("error closing");
         let deser: Vec<serde_json::Value> = serde_json::from_str(&body).expect("error parsinge");
-        let first = &parse_to_vector(deser).expect("error parsing vector")[0];
+        let first = &deser[0];
+        let first_id:u32 =  serde_json::from_value(first["number"].clone()).expect("err");
         match self.requester.edit_comment(enc_feedback, request.id) {
-            Err(_) => return Err(()),
-            _ => Ok(()),
+             Err(_) => return Err(()),
+             _ => Ok(()),
         }
+
     }
 }
 
@@ -152,7 +153,48 @@ mod tests {
     use super::*;
     const USERNAME: &str = "hortinstein";
     const CLASS_REPO_ADDRESS: &str = "https://api.github.com/repos/replicatedu/issue_database";
+    use std::env;
 
     #[test]
-    fn close_issue() {}
+    fn register() {
+        let password = env::var("GITHUB_PASSWORD").expect("set the GITHUB_PASSWORD env");
+        let issue = ClassIssues::new(CLASS_REPO_ADDRESS.to_string(),
+                                     USERNAME.to_string(),
+                                     password.to_string());
+        issue.register("myrepo");
+    }
+    #[test]
+    fn view_register() {
+        let password = env::var("GITHUB_PASSWORD").expect("set the GITHUB_PASSWORD env");
+        let issue = ClassIssues::new(CLASS_REPO_ADDRESS.to_string(),
+                                     USERNAME.to_string(),
+                                     password.to_string());
+        let regs = issue.view_registrations();
+        dbg!(regs);
+    }
+    #[test]
+    fn view_req() {
+        let password = env::var("GITHUB_PASSWORD").expect("set the GITHUB_PASSWORD env");
+        let issue = ClassIssues::new(CLASS_REPO_ADDRESS.to_string(),
+                                     USERNAME.to_string(),
+                                     password.to_string());
+        let regs = issue.view_registrations();
+        dbg!(regs);
+    }
+
+    #[test]
+    fn req_grade(){
+        let password = env::var("GITHUB_PASSWORD").expect("set the GITHUB_PASSWORD env");
+        let issue = ClassIssues::new(CLASS_REPO_ADDRESS.to_string(),
+                                     USERNAME.to_string(),
+                                     password.to_string());
+        issue.request_grade("asdfasdfdsa");
+        let grade_reqs = issue.get_all_grade_requests().expect("error getting grades");
+        for grade_req in grade_reqs{
+
+            let regs = issue.post_grade(grade_req, "my grade_correct");
+        }
+        
+    }
+
 }
