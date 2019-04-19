@@ -78,7 +78,7 @@ impl ClassIssueRequester {
         let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
 
         let client = reqwest::Client::new();
-        let mut res = client.get(url).send()?;
+        let mut res = client.get(url).basic_auth(&self.username, Some(&self.password)).send()?;
         dbg!(&res);
         let body = res.text().expect("error parsing");
         Ok(body)
@@ -94,7 +94,7 @@ impl ClassIssueRequester {
         let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
 
         let client = reqwest::Client::new();
-        let mut res = client.get(url).send()?;
+        let mut res = client.get(url).basic_auth(&self.username, Some(&self.password)).send()?;
         let body = res.text().expect("error parsing");
         Ok(body)
     }
@@ -109,7 +109,7 @@ impl ClassIssueRequester {
         let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
 
         let client = reqwest::Client::new();
-        let mut res = client.get(url).json(&map).send()?;
+        let mut res = client.get(url).basic_auth(&self.username, Some(&self.password)).json(&map).send()?;
         let body = res.text().expect("error parsing");
         Ok(body)
     }
@@ -125,7 +125,7 @@ impl ClassIssueRequester {
         let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
 
         let client = reqwest::Client::new();
-        let mut res = client.get(url).query(&map).send()?;
+        let mut res = client.get(url).basic_auth(&self.username, Some(&self.password)).query(&map).send()?;
         let body = res.text().expect("error parsing");
         Ok(body)
     }
@@ -143,7 +143,7 @@ impl ClassIssueRequester {
         let url = reqwest::Url::parse(&url_str).expect("invalid issue writing url");
 
         let client = reqwest::Client::new();
-        let mut res = client.get(url).query(&map).send()?;
+        let mut res = client.get(url).basic_auth(&self.username, Some(&self.password)).query(&map).send()?;
         let body = res.text().expect("error parsing");
         Ok(body)
     }
