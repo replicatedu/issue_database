@@ -7,11 +7,11 @@ extern crate serde_json;
 
 #[derive(Debug)]
 pub struct ClassIssue {
-    title: String,
-    body: String,
-    number: u32,
-    id: u32,
-    open: bool,
+    pub title: String,
+    pub body: String,
+    pub number: u32,
+    pub id: u32,
+    pub open: bool,
 }
 
 //holds data for instructor and students
