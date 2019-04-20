@@ -24,7 +24,6 @@ fn parse_to_vector(deser: Vec<serde_json::Value>) -> Result<Vec<ClassIssue>, ()>
     for x in deser {
         let issue_state: String = serde_json::from_value(x["state"].clone()).expect("err");
         let state = if &issue_state == "open" { true } else { false };
-        dbg!(issue_state);
         let ci = ClassIssue {
             title: serde_json::from_value(x["title"].clone()).expect("err"),
             body: serde_json::from_value(x["body"].clone()).expect("err"),
