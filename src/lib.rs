@@ -105,10 +105,19 @@ impl ClassIssues {
         parse_to_vector(deser)
     }
 
-    pub fn get_all_grade_requests(&self) -> Result<Vec<ClassIssue>, ()> {
+    pub fn get_open_registrations(&self) -> Result<Vec<ClassIssue>, ()> {
         let body = self
             .requester
-            .get_all_issues("grade_request".to_string())
+            .get_open_issues("register".to_string())
+            .expect("error closing");
+        let deser: Vec<serde_json::Value> = serde_json::from_str(&body).expect("error parsinge");
+        parse_to_vector(deser)
+    }
+
+    pub fn get_open_grade_requests(&self) -> Result<Vec<ClassIssue>, ()> {
+        let body = self
+            .requester
+            .get_open_issues("grade_request".to_string())
             .expect("error closing");
         dbg!(&body);
         let deser: Vec<serde_json::Value> = serde_json::from_str(&body).expect("error parsinge");
@@ -189,7 +198,7 @@ mod tests {
                                      USERNAME.to_string(),
                                      password.to_string());
         issue.request_grade("asdfasdfdsa");
-        let grade_reqs = issue.get_all_grade_requests().expect("error getting grades");
+        let grade_reqs = issue.get_open_grade_requests().expect("error getting grades");
         for grade_req in grade_reqs{
 
             let regs = issue.post_grade(grade_req, "my grade_correct");
