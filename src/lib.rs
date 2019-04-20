@@ -92,6 +92,20 @@ impl ClassIssues {
         parse_to_vector(deser)
     }
 
+    pub fn view_issues(&self, issue: &ClassIssue) -> Result<Vec<String>, ()>{
+        let body = self
+            .requester
+            .get_issue_comments(issue.number)
+            .expect("error closing");
+        let deser: Vec<serde_json::Value> = serde_json::from_str(&body).expect("error parsinge");
+        let mut v_ret: Vec<String> = Vec::new();
+        for x in deser {
+            let body: String = serde_json::from_value(x["body"].clone()).expect("err");
+            v_ret.push(body);
+        }
+        Ok(v_ret)
+    }
+
     // //////////////////////////////////////
     // //methods for use by the instructors
     // //////////////////////////////////////
