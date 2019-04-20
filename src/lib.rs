@@ -75,7 +75,7 @@ impl ClassIssues {
         Ok(())
     }
 
-    pub fn view_grades(self) -> Result<Vec<ClassIssue>, ()> {
+    pub fn view_grades(&self) -> Result<Vec<ClassIssue>, ()> {
         let body = self
             .requester
             .get_all_my_issues("grade_request".to_string())
@@ -84,7 +84,7 @@ impl ClassIssues {
         parse_to_vector(deser)
     }
 
-    pub fn view_registrations(self) -> Result<Vec<ClassIssue>, ()> {
+    pub fn view_registrations(&self) -> Result<Vec<ClassIssue>, ()> {
         let body = self
             .requester
             .get_all_my_issues("register".to_string())
