@@ -125,7 +125,15 @@ impl ClassIssues {
         parse_to_vector(deser)
     }
 
-    pub fn confirm_register(&self, registration: &ClassIssue) -> Result<(), ()> {
+    pub fn confirm_register(&self, registration: &ClassIssue, enc_confirm: &str) -> Result<(), ()> {
+        match self
+            .requester
+            .comment_on_issue(enc_confirm, registration.number)
+        {
+            Err(_) => return Err(()),
+            _ => (),
+        };
+
         match self.requester.close_issue(registration.number) {
             Err(_) => return Err(()),
             _ => (),
