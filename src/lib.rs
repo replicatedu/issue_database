@@ -154,7 +154,7 @@ impl ClassIssues {
         Ok(())
     }
 
-    pub fn post_grade(&self, request: ClassIssue, enc_feedback: &str) -> Result<(), ()> {
+    pub fn post_grade(&self, request: &ClassIssue, enc_feedback: &str) -> Result<(), ()> {
         match self
             .requester
             .comment_on_issue(enc_feedback, request.number)
